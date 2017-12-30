@@ -12,8 +12,8 @@ LOG = logging.getLogger()
 LOG.setLevel(logging.INFO)
 
 # Input sizes
-INPUT_WIDTH = 300
-INPUT_HEIGHT = 120
+INPUT_WIDTH = 400
+INPUT_HEIGHT = 400
 
 # Lobby sizes
 LOBBY_WIDTH = 400
@@ -26,8 +26,8 @@ class ConnectionUI(Frame):
     In case of incorrect inputs, the user is notified via error messages and is allowed to continue
     providing inputs.
     """
+    server_uri = None
     nickname = None
-    port = None
 
     def __init__(self, parent):
         Frame.__init__(self, parent)
@@ -42,9 +42,8 @@ class ConnectionUI(Frame):
         self.parent.title('Connect to a Sudoku server')
         self.pack(fill=BOTH, expand=1)
 
-        Label(self, text='Enter Nickname').grid(row=0, padx=(15, 0))
-        Label(self, text='Nickname presets').grid(row=1, padx=(15, 0))
-        Label(self, text='Enter Sudoku server port').grid(row=2, padx=(15, 0))
+        Label(self, text='Enter Nickname').grid(row=0, column=0, padx=(15, 0))
+        Label(self, text='Nickname presets').grid(row=1, column=0, padx=(15, 0))
 
         self.entry_nickname = Entry(self)
         self.entry_nickname.grid(row=0, column=1, padx=(0, 15))
@@ -52,24 +51,30 @@ class ConnectionUI(Frame):
         var = StringVar(self)
         var.set('')
 
-        self.entry_nickname_options = OptionMenu(self, var, 'Peeter', 'Jürka', 'Antskan', 'Jüri', 'Toss',
-                                                 command=self.__select_preset)
+        self.entry_nickname_options = OptionMenu(self, var, 'Peeter', 'Jürka', 'Antskan', 'Jüri', 'Toss', command=self.__select_preset)
         self.entry_nickname_options.grid(row=1, column=1, padx=(0, 15))
 
-        self.entry_port = Entry(self)
-        self.entry_port.grid(row=2, column=1, padx=(0, 15))
+        self.server_list = Treeview(self, columns=('server', 'games'))
+        self.server_list['show'] = 'headings'
+        self.server_list.heading('server', text='Server name')
+        self.server_list.column('server', width=250, anchor=CENTER)
+        self.server_list.heading('games', text='Gilgames')
+        self.server_list.column('games', width=100, anchor=CENTER)
+        self.server_list.grid(row=2, column=0, columnspan=2, rowspan=2, padx=20, pady=(10, 0))
 
-        self.submit_name = Button(self, text='Submit and connect', command=self.__submit_connect)
-        self.submit_name.grid(row=3, column=1)
+        self.connect_lobby = Button(self, text='Join server', command=self.__connect_server)
+        self.connect_lobby.grid(row=3, column=1, pady=(0, 10))
 
-    def __submit_connect(self):
+    def __connect_server(self):
         """
         Input name has no space and less or equal to 8 characters.
         Input port consists of an integer between 1001 and 65535.
         """
         name_ok = False
-        port_ok = False
+        server_ok = False
+        LOG.debug('Server connect button has been pressed.')
 
+        # Nickname entry validation
         nickname = self.entry_nickname.get()
         if 8 >= len(nickname) > 0:
             if ' ' not in nickname:
@@ -82,29 +87,51 @@ class ConnectionUI(Frame):
         elif len(nickname) > 8:
             tkMessageBox.showwarning("Name error", "Player name has to be less than 9 characters long.")
 
-        try:
-            port = int(self.entry_port.get())
-        except (ValueError, TypeError):
-            port = '-1'
+        # Server list selection validation
+        current_item = self.server_list.focus()
+        selected_server = None
 
-        if isinstance(port, int):
-            if 1000 < port < 65535:
-                port_ok = True
-                LOG.debug('Ok port.')
-            else:
-                tkMessageBox.showwarning("Port error", "Port number has to be between 1000 and 65535.")
+        if current_item is not None and current_item.strip() != '':
+            # Select game column value from item values dictionary.
+            selected_server = self.server_list.item(current_item)['values'][0]
+            LOG.debug('Player wishes to join server ' + str(selected_server))
+
+            if selected_server is not None:
+                server_ok = True
         else:
-            tkMessageBox.showwarning("Port error", "Port number has to be an integer.")
+            tkMessageBox.showwarning("Connection error", "Please fuck off and select a server to join.")
 
-        if name_ok and port_ok:
+        if name_ok and server_ok:
             self.nickname = nickname
-            self.port = port
+            self.server_uri = selected_server
 
     def __select_preset(self, value):
         """
         Selects one of the preset names as the nickname """
         self.entry_nickname.delete(0, 'end')
         self.entry_nickname.insert('end', value)
+
+    def populate_server_list(self, games):
+        """
+        Method to re-populate the server list every poll.
+        Additionally retains the focused line during polling.
+        :param games:
+        """
+        previous_selection = self.server_list.selection()
+        prev_item = None
+        if len(previous_selection) > 0:
+            prev_item = self.server_list.item(previous_selection[0])
+
+        self.server_list.delete(*self.server_list.get_children())
+        for game in games:
+            self.server_list.insert('', 'end', values=(str(game[0]), str(game[1]) + '/' + str(game[2])))
+
+        if prev_item is not None:
+            for item in self.server_list.get_children():
+                if self.server_list.item(item) == prev_item:
+                    self.server_list.selection_set(item)
+                    self.server_list.focus(item)
+
 
 class LobbyUI(Frame):
     """
@@ -184,7 +211,7 @@ class LobbyUI(Frame):
         if max_ok:
             self.action = ('create', max_count)
 
-    def populate_list(self, games):
+    def populate_lobby_list(self, servers):
         """
         Method to re-populate the lobby list every poll.
         Additionally retains the focused line during polling.
@@ -196,8 +223,8 @@ class LobbyUI(Frame):
             prev_item = self.lobby_list.item(previous_selection[0])
 
         self.lobby_list.delete(*self.lobby_list.get_children())
-        for game in games:
-            self.lobby_list.insert('', 'end', values=(str(game[0]), str(game[1]) + '/' + str(game[2])))
+        for server in servers:
+            self.lobby_list.insert('', 'end', values=(str(server[0]), str(server[1]) + '/' + str(server[2])))
 
         if prev_item is not None:
             for item in self.lobby_list.get_children():
@@ -213,10 +240,30 @@ def initiate_input(root):
     :param root:
     :return client window:
     """
-    client_window = ConnectionUI(root)
+    input_window = ConnectionUI(root)
     root.geometry('%dx%d' % (INPUT_WIDTH, INPUT_HEIGHT))
 
-    return client_window
+    return input_window
+
+
+def update_input(input_window, servers):
+    """
+    Update server list view from games list data.
+    :param input_window:
+    :param servers:
+    """
+
+    input_window.populate_server_list(servers)
+    input_window.update()
+
+
+def destroy_input_window(input_window):
+    """
+    Close lobby UI portion of root.
+    :param input_window:
+    """
+    LOG.debug('Lobby is destroyed.')
+    input_window.destroy()
 
 
 def initiate_lobby(root):
@@ -231,21 +278,21 @@ def initiate_lobby(root):
     return room_window
 
 
-def update_lobby(lobby_instance, games):
+def update_lobby(lobby_window, games):
     """
     Update lobby list view from games list data.
-    :param lobby_instance:
+    :param lobby_window:
     :param games:
     """
 
-    lobby_instance.populate_list(games)
-    lobby_instance.update()
+    lobby_window.populate_lobby_list(games)
+    lobby_window.update()
 
 
-def destroy_lobby_window(room_window):
+def destroy_lobby_window(lobby_window):
     """
     Close lobby UI portion of root.
-    :param room_window:
+    :param lobby_window:
     """
     LOG.debug('Lobby is destroyed.')
-    room_window.destroy()
+    lobby_window.destroy()
