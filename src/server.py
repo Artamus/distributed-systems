@@ -125,7 +125,7 @@ if __name__ == "__main__":
 
     parser.add_argument("-mc", "--multicast", help="Multicast group URI", default="239.1.1.1")
     parser.add_argument("-mcp", "--mcport", help="Multicast group port", default=7778)
-    parser.add_argument("-h", "--host", help="Pyro host URI", default="127.0.0.1")
+    parser.add_argument("-host", "--host", help="Pyro host URI", default="127.0.0.1")
     parser.add_argument("-p", "--port", help="Pyro host port", default=7777)
 
     args = parser.parse_args()
