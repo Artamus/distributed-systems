@@ -91,14 +91,14 @@ class CompetitiveSudoku(object):
         return str(user_uri)
 
 
-def send_sudoku_uri_multicast(sudoku_uri, mc_addr, ttl=1):
+def send_sudoku_uri_multicast(sudoku_uri, mc_addr, server_name, ttl=1):
     """
     Main method to send sudoku URI to the local multicast group
     :param sudoku_uri: Pyro URI to send out using multicast
     :param mc_addr: Multicast group address as tuple (mc_host, mc_port)
     :param ttl: Time to live
     """
-    multicast_payload = "SERVERADDR;" + str(sudoku_uri) + ";"
+    multicast_payload = "SERVERADDR;" + str(sudoku_uri) + ";" + str(server_name) + ";"
 
     try:
         s = socket(AF_INET, SOCK_DGRAM)
@@ -114,9 +114,9 @@ def send_sudoku_uri_multicast(sudoku_uri, mc_addr, ttl=1):
         LOG.error("Cannot send multicast request: %s" % str(e))
 
 
-def sudoku_uri_multicast(sudoku_uri, mc_addr):
+def sudoku_uri_multicast(sudoku_uri, mc_addr, server_name):
     while 1:
-        send_sudoku_uri_multicast(sudoku_uri, mc_addr)
+        send_sudoku_uri_multicast(sudoku_uri, mc_addr, server_name)
         sleep(1)
 
 
@@ -127,6 +127,7 @@ if __name__ == "__main__":
     parser.add_argument("-mcp", "--mcport", help="Multicast group port", default=7778)
     parser.add_argument("-host", "--host", help="Pyro host URI", default="127.0.0.1")
     parser.add_argument("-p", "--port", help="Pyro host port", default=7777)
+    parser.add_argument("-n", "--name", help="Name of the game server", required=True)
 
     args = parser.parse_args()
 
@@ -139,12 +140,12 @@ if __name__ == "__main__":
 
     LOG.info("The game URI is: " + str(uri))
 
-    # TODO: Do the multicast/broadcast for the server
-
+    # Broadcast the URI of the Pyro server instance
     mc_host = args.multicast
     mc_port = args.mcport
+    server_name = args.name
 
-    mc_thread = threading.Thread(target=sudoku_uri_multicast, args=(uri, (mc_host, mc_port)))
+    mc_thread = threading.Thread(target=sudoku_uri_multicast, args=(uri, (mc_host, mc_port), server_name))
     mc_thread.setDaemon(True)
     mc_thread.start()
 

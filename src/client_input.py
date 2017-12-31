@@ -51,7 +51,8 @@ class ConnectionUI(Frame):
         var = StringVar(self)
         var.set('')
 
-        self.entry_nickname_options = OptionMenu(self, var, 'Peeter', 'Jürka', 'Antskan', 'Jüri', 'Toss', command=self.__select_preset)
+        self.entry_nickname_options = OptionMenu(self, var, 'Peeter', 'Jürka', 'Antskan', 'Jüri', 'Toss',
+                                                 command=self.__select_preset)
         self.entry_nickname_options.grid(row=1, column=1, padx=(0, 15))
 
         self.server_list = Treeview(self, columns=('server', 'games'))
@@ -76,7 +77,7 @@ class ConnectionUI(Frame):
 
         # Nickname entry validation
         nickname = self.entry_nickname.get()
-        if 8 >= len(nickname) > 0:
+        if 0 < len(nickname) <= 8:
             if ' ' not in nickname:
                 name_ok = True
                 LOG.debug('Player created: ' + nickname)
@@ -93,7 +94,7 @@ class ConnectionUI(Frame):
 
         if current_item is not None and current_item.strip() != '':
             # Select game column value from item values dictionary.
-            selected_server = self.server_list.item(current_item)['values'][0]
+            selected_server = self.server_list.item(current_item)['values'][2]
             LOG.debug('Player wishes to join server ' + str(selected_server))
 
             if selected_server is not None:
@@ -111,11 +112,11 @@ class ConnectionUI(Frame):
         self.entry_nickname.delete(0, 'end')
         self.entry_nickname.insert('end', value)
 
-    def populate_server_list(self, games):
+    def populate_server_list(self, servers):
         """
         Method to re-populate the server list every poll.
         Additionally retains the focused line during polling.
-        :param games:
+        :param servers:
         """
         previous_selection = self.server_list.selection()
         prev_item = None
@@ -123,8 +124,8 @@ class ConnectionUI(Frame):
             prev_item = self.server_list.item(previous_selection[0])
 
         self.server_list.delete(*self.server_list.get_children())
-        for game in games:
-            self.server_list.insert('', 'end', values=(str(game[0]), str(game[1]) + '/' + str(game[2])))
+        for server in servers.keys():
+            self.server_list.insert('', 'end', values=(str(servers[server]), str(0), str(server)))
 
         if prev_item is not None:
             for item in self.server_list.get_children():

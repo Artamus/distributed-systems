@@ -1,16 +1,19 @@
 from Tkinter import Tk
 import tkMessageBox
-from client_input import initiate_input, initiate_lobby, update_input, update_lobby, destroy_input_window, destroy_lobby_window
+from client_input import initiate_input, initiate_lobby, update_input, update_lobby, destroy_input_window, \
+    destroy_lobby_window
 from client import *
 import time
 import threading
 import SudokuGameGUI
+from socket import socket, AF_INET, SOCK_DGRAM, inet_aton, IPPROTO_IP, IP_ADD_MEMBERSHIP, SOL_SOCKET, SO_REUSEADDR, \
+    SHUT_RDWR, timeout
 
 # Setup logging
 FORMAT = '%(asctime)-15s %(levelname)s %(message)s'
 logging.basicConfig(level=logging.DEBUG, format=FORMAT)
 LOG = logging.getLogger()
-LOG.setLevel(logging.INFO)
+LOG.setLevel(logging.DEBUG)
 
 sudoku_refresh_thread = None
 lobby_refresh_thread = None
@@ -21,22 +24,14 @@ lobby_data = None
 
 hard_exit = False
 
+__SERVERS = {}
+
 
 def refresh_input(root, input_window):
     global input_data
     global hard_exit
 
-    servers = []
-    try:
-        # TODO: right proper req get servers be here
-        # servers = req_get_games(server_uri)
-        pass
-    except Exception as err:
-        tkMessageBox.showwarning("Connection error", str(err))
-        hard_exit = True
-        return
-
-    update_input(input_window, servers)
+    update_input(input_window, __SERVERS)
     input_data = input_window.server_uri, input_window.nickname
 
     if input_data[0] is not None and input_data[1] is not None:
@@ -102,6 +97,7 @@ def refresh_lobby_loopy(root, server_uri, room_window, user_id):
     :param root:
     :param server_uri:
     :param room_window:
+    :param user_id:
     :return:
     """
     global hard_exit
@@ -128,6 +124,7 @@ def refresh_game_state(sudoku_ui, game_state, user_id):
     Calls the Sudoku UI game board visual state update.
     :param sudoku_ui:
     :param game_state:
+    :param user_id:
     :return:
     """
     board, scores, game_progression = game_state
@@ -156,7 +153,8 @@ def refresh_game(sudoku_ui, game_id, server_uri, user_id, board_changed=None):
 
     try:
         if board_changed is not None:
-            game_state = req_make_move(user_id, game_id, board_changed[0], board_changed[1], board_changed[2], server_uri)
+            game_state = req_make_move(user_id, game_id, board_changed[0], board_changed[1], board_changed[2],
+                                       server_uri)
         else:
             game_state = req_get_state(game_id, server_uri)
 
@@ -213,7 +211,11 @@ def main_input(root):
     """
     global input_data
     global hard_exit
+
+    LOG.debug("About to initiate input")
     input_window = initiate_input(root)
+
+    LOG.debug("Initiated input window")
 
     input_refresh_thread = threading.Thread(target=refresh_input_loopy(root, input_window))
     input_refresh_thread.start()
@@ -228,6 +230,7 @@ def main_lobby(root, server_uri, user_id):
     Runs the main game lobby thread.
     :param root:
     :param server_uri:
+    :param user_id:
     :return:
     """
     global lobby_data
@@ -246,6 +249,7 @@ def main_sudoku(root, server_uri, lobby_data):
     """
     Runs the main sudoku game thread.
     :param root:
+    :param server_uri:
     :param lobby_data:
     :return:
     """
@@ -301,12 +305,68 @@ def on_close():
         hard_exit = True
 
 
+class MulticastDiscoveryThread(threading.Thread):
+    def __init__(self, servers):
+        self._stopevent = threading.Event()
+        threading.Thread.__init__(self)
+
+        self.sock = socket(AF_INET, SOCK_DGRAM)
+        membership = inet_aton(mc_host) + inet_aton("0.0.0.0")
+
+        self.sock.setsockopt(IPPROTO_IP, IP_ADD_MEMBERSHIP, membership)
+        self.sock.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
+
+        self.sock.bind(("0.0.0.0", mc_port))
+
+        self.sock.settimeout(1)
+
+        LOG.debug("Socket bound")
+        self.servers = servers
+
+    def run(self):
+        while not self._stopevent.isSet():
+            try:
+                message, address = self.sock.recvfrom(255)
+            except timeout:
+                LOG.debug("No data in multicast")
+                message, address = None, None
+
+            if message:
+                header, content = message.split(";", 1)
+
+                LOG.debug("Header: " + str(header))
+                LOG.debug("Content: " + str(content))
+
+                addr, content = content.split(";", 1)
+                name = content.split(";", 1)[0]
+                if addr not in self.servers:
+                    self.servers[addr] = name
+
+        self.sock.shutdown(SHUT_RDWR)
+        self.sock.close()
+
+    def join(self, timeout=None):
+        self._stopevent.set()
+        threading.Thread.join(self, timeout)
+
+
 if __name__ == "__main__":
     root = Tk()
     root.protocol("WM_DELETE_WINDOW", on_close)
 
+    mc_host = "239.1.1.1"
+    mc_port = 7778
+
     while 1:
+        multicast_thread = MulticastDiscoveryThread(__SERVERS)
+        multicast_thread.start()
+
         server_uri, user_id = main_input(root)
+
+        multicast_thread.join()
+
+        LOG.debug(server_uri)
+        LOG.debug(user_id)
 
         if hard_exit:
             break
