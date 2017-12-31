@@ -2,9 +2,9 @@ from Tkinter import Tk
 import tkMessageBox
 from client_input import initiate_input, initiate_lobby, update_input, update_lobby, destroy_input_window, \
     destroy_lobby_window
-from client import *
 import time
 import threading
+import logging
 import SudokuGameGUI
 from socket import socket, AF_INET, SOCK_DGRAM, inet_aton, IPPROTO_IP, IP_ADD_MEMBERSHIP, SOL_SOCKET, SO_REUSEADDR, \
     SHUT_RDWR, timeout
@@ -152,12 +152,8 @@ def refresh_game(sudoku_ui, game_id, user, board_changed=None):
 
     try:
         if board_changed is not None:
-            # TODO: Deprecated
-            # game_state = req_make_move(user_id, game_id, board_changed[0], board_changed[1], board_changed[2],
-            #                            server_uri)
             game_state = user.make_guess(board_changed[0], board_changed[1], board_changed[2])
         else:
-            # game_state = req_get_state(game_id, server_uri)  # TODO: Deprecated
             game_state = user.get_game_state()
 
     except Exception as err:
@@ -190,17 +186,15 @@ def refresh_game_loopy(sudoku_ui, game_id, user):
 
             # Remove player from game
             try:
-                # req_remove_player(game_id, user_id, server_uri)  # TODO: Deprecated
                 user.quit_game()
             except Exception as err:
                 tkMessageBox.showwarning("Connection error", str(err))
             break
 
-        board_changed, keep_playing = refresh_game(sudoku_ui, game_id, server_uri, user_id, board_changed)
+        board_changed, keep_playing = refresh_game(sudoku_ui, game_id, user, board_changed)
 
     sudoku_ui.destroy()
     try:
-        # req_remove_player(game_id, user_id, server_uri)  # TODO: Deprecated
         user.quit_game()
     except Exception as err:
         tkMessageBox.showwarning("Connection error", str(err))
@@ -262,8 +256,7 @@ def main_sudoku(root, lobby_data, user):
         LOG.debug("Creating new game by request of user")
 
         try:
-            # game_id, game_state = req_create_game(user_id, value, server_uri)  # TODO: Deprecated
-            game_id, game_state = user.create_game(value)
+            game_state = user.create_game(value)
         except Exception as err:
             tkMessageBox.showwarning("Connection error", str(err))
             return
@@ -272,7 +265,6 @@ def main_sudoku(root, lobby_data, user):
         game_id = value
 
         try:
-            # game_state = req_join_game(user_id, game_id, server_uri)  # TODO: Deprecated
             game_state = user.join_game(game_id)
         except Exception as err:
             tkMessageBox.showwarning("Connection error", str(err))
@@ -294,7 +286,7 @@ def main_sudoku(root, lobby_data, user):
     sudoku_ui = SudokuGameGUI.SudokuUI(root, game)
     root.geometry("%dx%d" % (SudokuGameGUI.TOTAL_WIDTH, SudokuGameGUI.HEIGHT))
 
-    sudoku_refresh_thread = threading.Thread(target=refresh_game_loopy(sudoku_ui, game_id, server_uri, user_id))
+    sudoku_refresh_thread = threading.Thread(target=refresh_game_loopy(sudoku_ui, game_id, user))
 
 
 def on_close():

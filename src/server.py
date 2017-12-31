@@ -21,6 +21,13 @@ def __info():
     return "%s v%s - %s" % (__NAME, __VER, __DESC)
 
 
+def dummy_state():
+    return [[[1, 2, 6, 9, 0, 0, 0, 3, 0], [0, 0, 8, 0, 0, 0, 1, 0, 4], [0, 0, 0, 3, 1, 0, 0, 0, 0],
+             [2, 8, 0, 0, 7, 0, 0, 0, 0], [7, 6, 0, 0, 0, 0, 0, 1, 9], [0, 0, 0, 0, 2, 0, 0, 8, 6],
+             [0, 0, 0, 0, 6, 1, 0, 0, 0], [6, 0, 2, 0, 0, 0, 9, 0, 0], [0, 3, 0, 0, 0, 4, 8, 6, 1]],
+            [('rth', 0, '6fbea54a-dcf3-4949-bd61-668440fafabf')], 0]
+
+
 @Pyro4.expose
 class User(object):
     """
@@ -38,26 +45,29 @@ class User(object):
         pass
         return [(123, 2, 3), (321, 1, 4)]  # Dummy data
 
-    # TODO: Populate methods with dummy data
     def create_game(self, max_players):
         """
         Create a new sudoku game and return the state """
         pass
+        return dummy_state()
 
     def join_game(self, game_id):
         """
-        Join an existing sudoku game """
+        Join an existing sudoku game, returns the state """
         pass
+        return dummy_state()
 
     def make_guess(self, x_coord, y_coord, val):
         """
         Make a guess on the sudoku table """
         pass
+        return dummy_state()
 
     def get_game_state(self):
         """
         Get the current playing field """
         pass
+        return dummy_state()
 
     def quit_game(self):
         """

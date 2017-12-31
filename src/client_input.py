@@ -216,7 +216,7 @@ class LobbyUI(Frame):
         """
         Method to re-populate the lobby list every poll.
         Additionally retains the focused line during polling.
-        :param games:
+        :param servers:
         """
         previous_selection = self.lobby_list.selection()
         prev_item = None
