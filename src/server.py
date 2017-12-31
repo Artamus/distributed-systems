@@ -30,48 +30,44 @@ class User(object):
     def __init__(self, name, competitive_sudoku):
         self.name = name
         self.sudoku = competitive_sudoku
+        self.game = None
 
-    def get_games(self):
+    def get_games_list(self):
         """
-        Get list of games on the server
+        Get list of games on the server """
+        pass
+        return [(1, 2, 3)]  # Dummy data
+
+    # TODO: Populate methods with dummy data
+    def create_game(self, max_players):
         """
+        Create a new sudoku game and return the state """
         pass
 
-    def create_game(self):
+    def join_game(self, game_id):
         """
-        Create a new sudoku game
-        """
+        Join an existing sudoku game """
         pass
 
-    def join_game(self):
+    def make_guess(self, x_coord, y_coord, val):
         """
-        Join an existing sudoku game
-        """
-        pass
-
-    def make_guess(self):
-        """
-        Make a guess on the sudoku table
-        """
+        Make a guess on the sudoku table """
         pass
 
     def get_game_state(self):
         """
-        Get the current playing field
-        """
+        Get the current playing field """
         pass
 
     def quit_game(self):
         """
-        Quit the current sudoku game the user is taking part in
-        """
+        Quit the current sudoku game the user is taking part in """
         pass
 
     def quit_server(self):
         """
-        Quit the server completely
-        """
-        pass
+        Quit the server completely """
+        self.sudoku.remove_player(self.name)
 
 
 @Pyro4.expose
@@ -84,11 +80,17 @@ class CompetitiveSudoku(object):
         self.users = {}
 
     def register(self, name):
+        if name in self.users:
+            return None
+
         user = User(name, self)
         self.users[name] = user
         user_uri = daemon.register(user)
 
         return str(user_uri)
+
+    def remove_player(self, name):
+        self.users.pop(name, None)
 
 
 def send_sudoku_uri_multicast(sudoku_uri, mc_addr, server_name, ttl=1):
