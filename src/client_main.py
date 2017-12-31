@@ -375,31 +375,30 @@ if __name__ == "__main__":
         if hard_exit:
             break
 
+        # Register username
+        me = None
+        try:
+            sudoku = Pyro4.Proxy(server_uri)
+
+            my_uri = sudoku.register(user_id)
+
+            if my_uri:
+                me = Pyro4.Proxy(my_uri)
+
+        except Exception as err:
+            tkMessageBox.showwarning("Connection error", str(err))
+            exit(1)
+
         # If received inputs are nones, it means we basically fuck off.
-        if user_id is not None and server_uri is not None:
+        if me is not None:
             active_client = True
         else:
             active_client = False
+            tkMessageBox.showwarning("Name error", "This nickname is not available")
 
         # If the client is active, we will proceed.
         while active_client:
 
-            # Register username
-            try:
-                sudoku = Pyro4.Proxy(server_uri)
-
-                my_uri = sudoku.register(user_id)
-
-                if my_uri:
-                    me = Pyro4.Proxy(my_uri)
-                else:
-                    exit("Fuck, name not available")  # TODO: Some kind of error and back to server list?
-
-            except Exception as err:
-                tkMessageBox.showwarning("Connection error", str(err))
-                exit(1)
-
-            # TODO: Use user object to populate data and so on
             # Connect client to lobby and show the game rooms.
             lobby_data = main_lobby(root, me)
 

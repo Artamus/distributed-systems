@@ -36,7 +36,7 @@ class User(object):
         """
         Get list of games on the server """
         pass
-        return [(1, 2, 3)]  # Dummy data
+        return [(123, 2, 3), (321, 1, 4)]  # Dummy data
 
     # TODO: Populate methods with dummy data
     def create_game(self, max_players):
