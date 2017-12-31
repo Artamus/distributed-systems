@@ -63,7 +63,7 @@ class ConnectionUI(Frame):
         self.server_list.grid(row=2, column=0, columnspan=2, rowspan=2, padx=20, pady=(10, 0))
 
         self.connect_lobby = Button(self, text='Join server', command=self.__connect_server)
-        self.connect_lobby.grid(row=3, column=1, pady=(0, 10))
+        self.connect_lobby.grid(row=4, column=1, pady=(0, 10))
 
     def __connect_server(self):
         """
