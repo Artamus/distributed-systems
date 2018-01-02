@@ -1,6 +1,9 @@
 from Tkinter import Canvas, Frame, BOTH, CENTER
 from ttk import Treeview
 import tkMessageBox
+import sys
+reload(sys)
+sys.setdefaultencoding('utf-8')
 
 MARGIN = 20  # Pixels around the board
 SIDE = 50  # Width of every board cell.
