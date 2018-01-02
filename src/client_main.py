@@ -28,7 +28,12 @@ hard_exit = False
 __SERVERS = {}
 
 
-def refresh_input(root, input_window):
+def refresh_input(input_window):
+    """
+    Polls for game servers and handles server connection data.
+    :param input_window:
+    :return loop ending boolean:
+    """
     global input_data
     global hard_exit
 
@@ -43,10 +48,9 @@ def refresh_input(root, input_window):
         return True
 
 
-def refresh_input_loopy(root, input_window):
+def refresh_input_loopy(input_window):
     """
-    This is the game lobby updater function.
-    :param root:
+    This is the game initial connection window updater function.
     :param input_window:
     :return:
     """
@@ -58,13 +62,12 @@ def refresh_input_loopy(root, input_window):
             input_window.destroy()
             break
 
-        keep_refreshing = refresh_input(root, input_window)
+        keep_refreshing = refresh_input(input_window)
 
 
-def refresh_lobby(root, room_window, user):
+def refresh_lobby(room_window, user):
     """
     Polls the server for its game list and updates the visual list with the new data.
-    :param root:
     :param room_window:
     :param user:
     :return loop ending boolean:
@@ -92,10 +95,9 @@ def refresh_lobby(root, room_window, user):
         return True
 
 
-def refresh_lobby_loopy(root, room_window, user):
+def refresh_lobby_loopy(room_window, user):
     """
     This is the game lobby updater function.
-    :param root:
     :param room_window:
     :param user:
     :return:
@@ -116,7 +118,7 @@ def refresh_lobby_loopy(root, room_window, user):
 
             break
 
-        keep_refreshing = refresh_lobby(root, room_window, user)
+        keep_refreshing = refresh_lobby(room_window, user)
 
 
 def refresh_game_state(sudoku_ui, game_state, user_id):
@@ -206,7 +208,7 @@ def main_input(root):
 
     LOG.debug("Initiated input window")
 
-    input_refresh_thread = threading.Thread(target=refresh_input_loopy(root, input_window))
+    input_refresh_thread = threading.Thread(target=refresh_input_loopy(input_window))
     input_refresh_thread.start()
 
     LOG.debug("Final input data is " + str(input_data))
@@ -225,7 +227,7 @@ def main_lobby(root, user):
 
     room_window = initiate_lobby(root)
 
-    lobby_refresh_thread = threading.Thread(target=refresh_lobby_loopy(root, room_window, user))
+    lobby_refresh_thread = threading.Thread(target=refresh_lobby_loopy(room_window, user))
     lobby_refresh_thread.start()
 
     LOG.debug("Final lobby data is " + str(lobby_data))
@@ -370,7 +372,7 @@ if __name__ == "__main__":
                 me = Pyro4.Proxy(my_uri)
 
         except Exception as err:
-            tkMessageBox.showwarning("Connection error", str(err))
+            tkMessageBox.showwarning("Connection error at registration", str(err))
             exit(1)
 
         # If received inputs are nones, it means we basically fuck off.
