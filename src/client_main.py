@@ -29,6 +29,11 @@ __SERVERS = {}
 
 
 def refresh_input(input_window):
+    """
+    Polls for game servers and handles server connection data.
+    :param input_window:
+    :return loop ending boolean:
+    """
     global input_data
     global hard_exit
 
@@ -45,8 +50,7 @@ def refresh_input(input_window):
 
 def refresh_input_loopy(input_window):
     """
-    This is the game lobby updater function.
-    :param root:
+    This is the game initial connection window updater function.
     :param input_window:
     :return:
     """
@@ -64,7 +68,6 @@ def refresh_input_loopy(input_window):
 def refresh_lobby(room_window, user):
     """
     Polls the server for its game list and updates the visual list with the new data.
-    :param root:
     :param room_window:
     :param user:
     :return loop ending boolean:
@@ -95,7 +98,6 @@ def refresh_lobby(room_window, user):
 def refresh_lobby_loopy(room_window, user):
     """
     This is the game lobby updater function.
-    :param root:
     :param room_window:
     :param user:
     :return:
@@ -376,7 +378,7 @@ if __name__ == "__main__":
                 me = Pyro4.Proxy(my_uri)
 
         except Exception as err:
-            tkMessageBox.showwarning("Connection error", str(err))
+            tkMessageBox.showwarning("Connection error at registration", str(err))
             exit(1)
 
         # If received inputs are nones, it means we basically fuck off.
