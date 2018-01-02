@@ -1,7 +1,4 @@
 
-import uuid
-from common import __GAME_STATE_WAIT, __GAME_STATE_PLAY, __GAME_STATE_OVER
-
 def read_solution():
     """
     Reads the Sudoku starting board and solution from a file

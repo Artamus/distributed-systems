@@ -1,7 +1,6 @@
 # encoding: utf-8
 from Tkinter import Frame, Button, BOTH, Entry, Label, OptionMenu, StringVar, CENTER
 from ttk import Treeview
-from client import *
 import tkMessageBox
 import logging
 
