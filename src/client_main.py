@@ -28,7 +28,7 @@ hard_exit = False
 __SERVERS = {}
 
 
-def refresh_input(root, input_window):
+def refresh_input(input_window):
     global input_data
     global hard_exit
 
@@ -43,7 +43,7 @@ def refresh_input(root, input_window):
         return True
 
 
-def refresh_input_loopy(root, input_window):
+def refresh_input_loopy(input_window):
     """
     This is the game lobby updater function.
     :param root:
@@ -58,10 +58,10 @@ def refresh_input_loopy(root, input_window):
             input_window.destroy()
             break
 
-        keep_refreshing = refresh_input(root, input_window)
+        keep_refreshing = refresh_input(input_window)
 
 
-def refresh_lobby(root, room_window, user):
+def refresh_lobby(room_window, user):
     """
     Polls the server for its game list and updates the visual list with the new data.
     :param root:
@@ -92,7 +92,7 @@ def refresh_lobby(root, room_window, user):
         return True
 
 
-def refresh_lobby_loopy(root, room_window, user):
+def refresh_lobby_loopy(room_window, user):
     """
     This is the game lobby updater function.
     :param root:
@@ -116,7 +116,7 @@ def refresh_lobby_loopy(root, room_window, user):
 
             break
 
-        keep_refreshing = refresh_lobby(root, room_window, user)
+        keep_refreshing = refresh_lobby(room_window, user)
 
 
 def refresh_game_state(sudoku_ui, game_state, user_id):
@@ -212,7 +212,7 @@ def main_input(root):
 
     LOG.debug("Initiated input window")
 
-    input_refresh_thread = threading.Thread(target=refresh_input_loopy(root, input_window))
+    input_refresh_thread = threading.Thread(target=refresh_input_loopy(input_window))
     input_refresh_thread.start()
 
     LOG.debug("Final input data is " + str(input_data))
@@ -231,7 +231,7 @@ def main_lobby(root, user):
 
     room_window = initiate_lobby(root)
 
-    lobby_refresh_thread = threading.Thread(target=refresh_lobby_loopy(root, room_window, user))
+    lobby_refresh_thread = threading.Thread(target=refresh_lobby_loopy(room_window, user))
     lobby_refresh_thread.start()
 
     LOG.debug("Final lobby data is " + str(lobby_data))
