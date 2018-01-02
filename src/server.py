@@ -6,6 +6,9 @@ from socket import socket, AF_INET, SOCK_DGRAM, IPPROTO_IP, IP_MULTICAST_LOOP, I
 from time import sleep
 
 # ---------- Logging ----------
+from games import Games
+from players import Players
+
 FORMAT = '%(asctime)-15s %(levelname)s %(message)s'
 logging.basicConfig(level=logging.DEBUG, format=FORMAT)
 LOG = logging.getLogger()
@@ -16,6 +19,8 @@ __NAME = "CompetitiveSudoku"
 __VER = "0.0.2"
 __DESC = "Simple Competitive Sudoku Game"
 
+_GAMES = Games()
+_PLAYERS = Players()
 
 def __info():
     return "%s v%s - %s" % (__NAME, __VER, __DESC)
@@ -38,46 +43,55 @@ class User(object):
         self.name = name
         self.sudoku = competitive_sudoku
         self.game = None
+        self.id = str(_PLAYERS.reg_player(name))
 
     def get_games_list(self):
         """
         Get list of games on the server """
-        pass
-        return [(123, 2, 3), (321, 1, 4)]  # Dummy data
+        return _GAMES.get_tuple()
 
     def create_game(self, max_players):
         """
         Create a new sudoku game and return the state """
-        pass
-        return dummy_state()
+        game_id = _GAMES.create_game(max_players)
+        game = _GAMES.get_game(game_id)
+        game.add_player(self.id)
+        self.game = game
+        return self.game.get_state(_PLAYERS)
 
     def join_game(self, game_id):
         """
         Join an existing sudoku game, returns the state """
-        pass
-        return dummy_state()
+        game = _GAMES.get_game(game_id)
+        game.add_player(self.id)
+        self.game = game
+        return self.game.get_state(_PLAYERS)
 
     def make_guess(self, x_coord, y_coord, val):
         """
         Make a guess on the sudoku table """
-        pass
-        return dummy_state()
+        self.game.make_move(self.id, int(x_coord), int(y_coord), int(val))
+
+        return self.game.get_state(_PLAYERS)
 
     def get_game_state(self):
         """
         Get the current playing field """
-        pass
-        return dummy_state()
+
+        return self.game.get_state()
 
     def quit_game(self):
         """
         Quit the current sudoku game the user is taking part in """
-        pass
+
+        self.game.remove_player(self.id)
+        self.game = None
 
     def quit_server(self):
         """
         Quit the server completely """
         self.sudoku.remove_player(self.name)
+        _PLAYERS.remove_player(self.id)
 
 
 @Pyro4.expose
