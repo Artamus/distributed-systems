@@ -38,6 +38,7 @@ class User(object):
     """
     User class, the main communication vector between the front-end and back-end
     """
+    global _GAMES, _PLAYERS
 
     def __init__(self, name, competitive_sudoku):
         self.name = name
@@ -83,7 +84,6 @@ class User(object):
     def quit_game(self):
         """
         Quit the current sudoku game the user is taking part in """
-
         self.game.remove_player(self.id)
         self.game = None
 

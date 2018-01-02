@@ -181,12 +181,6 @@ def refresh_game_loopy(sudoku_ui, user):
         if hard_exit:
             sudoku_ui.destroy()
             hard_exit = False
-
-            # Remove player from game
-            try:
-                user.quit_game()
-            except Exception as err:
-                tkMessageBox.showwarning("Connection error", str(err))
             break
 
         board_changed, keep_playing = refresh_game(sudoku_ui, user, board_changed)
