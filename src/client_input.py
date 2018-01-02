@@ -39,7 +39,7 @@ class ConnectionUI(Frame):
         """
         Initialize UI with two entry fields and a connection button."""
 
-        self.parent.title('Connect to a Sudoku server')
+        self.parent.title('Sudoku server selection')
         self.pack(fill=BOTH, expand=1)
 
         Label(self, text='Enter Nickname').grid(row=0, column=0, padx=(15, 0))
@@ -59,7 +59,7 @@ class ConnectionUI(Frame):
         self.server_list['show'] = 'headings'
         self.server_list.heading('server', text='Server name')
         self.server_list.column('server', width=250, anchor=CENTER)
-        self.server_list.heading('games', text='Gilgames')
+        self.server_list.heading('games', text='Games')
         self.server_list.column('games', width=100, anchor=CENTER)
         self.server_list.grid(row=2, column=0, columnspan=2, rowspan=2, padx=20, pady=(10, 0))
 
@@ -151,7 +151,7 @@ class LobbyUI(Frame):
         """
         Initialize UI with a list and required entry fields and submit buttons."""
 
-        self.parent.title('Multiplayer Game')
+        self.parent.title('Multiplayer Sudoku')
         self.pack(fill=BOTH, expand=1)
 
         self.lobby_list = Treeview(self, columns=('room', 'players'))
@@ -260,7 +260,7 @@ def update_input(input_window, servers):
 
 def destroy_input_window(input_window):
     """
-    Close lobby UI portion of root.
+    Close input UI portion of root.
     :param input_window:
     """
     LOG.debug('Lobby is destroyed.')
