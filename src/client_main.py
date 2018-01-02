@@ -139,11 +139,10 @@ def refresh_game_state(sudoku_ui, game_state, user_id):
     return board_changed, keep_playing
 
 
-def refresh_game(sudoku_ui, game_id, user, board_changed=None):
+def refresh_game(sudoku_ui, user, board_changed=None):
     """
     Gets updated game state from server to refresh the visual game state if needed.
     :param sudoku_ui:
-    :param game_id:
     :param user:
     :param board_changed:
     :return loop ending boolean, board change for the next iteration:
@@ -167,11 +166,10 @@ def refresh_game(sudoku_ui, game_id, user, board_changed=None):
     return board_changed, keep_playing
 
 
-def refresh_game_loopy(sudoku_ui, game_id, user):
+def refresh_game_loopy(sudoku_ui, user):
     """
     This is the main game updater function.
     :param sudoku_ui:
-    :param game_id:
     :param user:
     :return:
     """
@@ -191,7 +189,7 @@ def refresh_game_loopy(sudoku_ui, game_id, user):
                 tkMessageBox.showwarning("Connection error", str(err))
             break
 
-        board_changed, keep_playing = refresh_game(sudoku_ui, game_id, user, board_changed)
+        board_changed, keep_playing = refresh_game(sudoku_ui, user, board_changed)
 
     sudoku_ui.destroy()
     try:
@@ -286,7 +284,7 @@ def main_sudoku(root, lobby_data, user):
     sudoku_ui = SudokuGameGUI.SudokuUI(root, game)
     root.geometry("%dx%d" % (SudokuGameGUI.TOTAL_WIDTH, SudokuGameGUI.HEIGHT))
 
-    sudoku_refresh_thread = threading.Thread(target=refresh_game_loopy(sudoku_ui, game_id, user))
+    sudoku_refresh_thread = threading.Thread(target=refresh_game_loopy(sudoku_ui, user))
 
 
 def on_close():

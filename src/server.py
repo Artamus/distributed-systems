@@ -78,7 +78,7 @@ class User(object):
         """
         Get the current playing field """
 
-        return self.game.get_state()
+        return self.game.get_state(_PLAYERS)
 
     def quit_game(self):
         """
