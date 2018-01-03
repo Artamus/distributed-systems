@@ -328,9 +328,10 @@ class MulticastDiscoveryThread(threading.Thread):
                 LOG.debug("Content: " + str(content))
 
                 addr, content = content.split(";", 1)
-                name = content.split(";", 1)[0]
+                name, content = content.split(";", 1)
+                nr_of_players = content.split(";", 1)[0]
                 if addr not in self.servers:
-                    self.servers[addr] = name
+                    self.servers[addr] = (nr_of_players, name)
 
         self.sock.shutdown(SHUT_RDWR)
         self.sock.close()

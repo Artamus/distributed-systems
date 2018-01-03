@@ -124,7 +124,8 @@ class ConnectionUI(Frame):
 
         self.server_list.delete(*self.server_list.get_children())
         for server in servers.keys():
-            self.server_list.insert('', 'end', values=(str(servers[server]), str(0), str(server)))
+            nr_players, server_name = servers[server]
+            self.server_list.insert('', 'end', values=(str(server_name), str(nr_players), str(server)))
 
         if prev_item is not None:
             for item in self.server_list.get_children():

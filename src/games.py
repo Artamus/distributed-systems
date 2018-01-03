@@ -54,3 +54,9 @@ class Games:
                 elem = tuple((uid, len(game.scores), game.max_players))
                 output.append(elem)
         return output
+
+    def get_nr_games(self):
+        """
+        Returns the number of games
+        """
+        return len(self.games.keys())

@@ -22,6 +22,7 @@ __DESC = "Simple Competitive Sudoku Game"
 _GAMES = Games()
 _PLAYERS = Players()
 
+
 def __info():
     return "%s v%s - %s" % (__NAME, __VER, __DESC)
 
@@ -124,7 +125,10 @@ def send_sudoku_uri_multicast(sudoku_uri, mc_addr, server_name, ttl=1):
     :param mc_addr: Multicast group address as tuple (mc_host, mc_port)
     :param ttl: Time to live
     """
-    multicast_payload = "SERVERADDR;" + str(sudoku_uri) + ";" + str(server_name) + ";"
+    global _GAMES
+
+    multicast_payload = "SERVERADDR;" + str(sudoku_uri) + ";" + \
+                        str(server_name) + ";" + str(_GAMES.get_nr_games()) + ";"
 
     try:
         s = socket(AF_INET, SOCK_DGRAM)
