@@ -1,7 +1,7 @@
 from Tkinter import Tk
 import tkMessageBox
 from client_input import initiate_input, initiate_lobby, update_input, update_lobby, destroy_input_window, \
-    destroy_lobby_window
+    destroy_lobby_window, initiate_mc_window, destroy_mc_window
 import time
 import threading
 import logging
@@ -194,6 +194,27 @@ def refresh_game_loopy(sudoku_ui, user):
         tkMessageBox.showwarning("Connection error", str(err))
 
 
+def main_mc_input(root):
+    """
+    Keep refreshing MC input window until appropriate input is received and return it.
+    :param root:
+    :return host, port:
+    """
+    global hard_exit
+    mc_window = initiate_mc_window(root)
+
+    while True:
+        if hard_exit:
+            destroy_mc_window(mc_window)
+            return None, None
+
+        root.update()
+
+        if mc_window.mc_host is not None and mc_window.mc_port is not None:
+            destroy_mc_window(mc_window)
+            return mc_window.mc_host, mc_window.mc_port
+
+
 def main_input(root):
     """
     Keep refreshing input window until appropriate input is received and return it.
@@ -345,8 +366,7 @@ if __name__ == "__main__":
     root = Tk()
     root.protocol("WM_DELETE_WINDOW", on_close)
 
-    mc_host = "239.1.1.1"
-    mc_port = 7778
+    mc_host, mc_port = main_mc_input(root)
 
     while 1:
         multicast_thread = MulticastDiscoveryThread(__SERVERS)

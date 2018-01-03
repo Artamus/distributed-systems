@@ -3,6 +3,7 @@ from Tkinter import Frame, Button, BOTH, Entry, Label, OptionMenu, StringVar, CE
 from ttk import Treeview
 import tkMessageBox
 import logging
+import socket
 
 # Setup logging
 FORMAT = '%(asctime)-15s %(levelname)s %(message)s'
@@ -17,6 +18,85 @@ INPUT_HEIGHT = 400
 # Lobby sizes
 LOBBY_WIDTH = 400
 LOBBY_HEIGHT = 400
+
+
+class FuckingMCServerPrompt(Frame):
+    """
+    Multicasting server port and host address prompt."""
+
+    mc_host = None
+    mc_port = None
+
+    def __init__(self, parent):
+        Frame.__init__(self, parent)
+        self.parent = parent
+        self.row, self.col = -1, -1
+        self.__initUI()
+
+    def __initUI(self):
+        """
+        Initialize UI with two entry fields and a connection button."""
+
+        #self.parent.title('MC server selection')
+        self.parent.title('beats me')
+        self.pack(fill=BOTH, expand=1)
+
+        Label(self, text='Please insert the host and port where to listen for game servers').grid(row=0,
+                                                                                                  column=0,
+                                                                                                  columnspan=2,
+                                                                                                  padx=(15, 0))
+        Label(self, text='Enter host address').grid(row=1, column=0, padx=(15, 0))
+        Label(self, text='Enter host port').grid(row=2, column=0, padx=(15, 0))
+
+        self.mc_host_entry = Entry(self)
+        self.mc_host_entry.grid(row=1, column=1, padx=(0, 15))
+
+        self.mc_port_entry = Entry(self)
+        self.mc_port_entry.grid(row=2, column=1, padx=(0, 15))
+
+        # Default values for entry fields
+        self.mc_host_entry.insert('end', '239.1.1.1')
+        self.mc_port_entry.insert('end', '7778')
+
+        self.connect_lobby = Button(self, text='Select MC server', command=self.__connect_server)
+        self.connect_lobby.grid(row=3, column=1, pady=(0, 10))
+
+    def __connect_server(self):
+        """
+        Input port consists of an integer between 1001 and 65535.
+        Input host address consists of four point separated integers (IPv4) between 1 and 255.
+        """
+        host_ok = False
+        port_ok = False
+
+        try:
+            socket.inet_aton(self.mc_host_entry.get())
+        except socket.error:
+            # Bad socket input if we get here
+            tkMessageBox.showwarning("Host error", "Please enter a correct host address.")
+            host = None
+        else:
+            host_ok = True
+            host = self.mc_host_entry.get()
+
+        try:
+            port = int(self.mc_port_entry.get())
+        except (ValueError, TypeError):
+            port = '-1'
+
+        if isinstance(port, int):
+            if 1000 < port < 65535:
+                port_ok = True
+                LOG.debug('Ok port.')
+            else:
+                tkMessageBox.showwarning("Port error", "Port number has to be between 1000 and 65535.")
+        else:
+            tkMessageBox.showwarning("Port error", "Port number has to be an integer.")
+
+        if host_ok and port_ok:
+            self.mc_host = host
+            self.mc_port = port
+
 
 
 class ConnectionUI(Frame):
@@ -36,7 +116,7 @@ class ConnectionUI(Frame):
 
     def __initUI(self):
         """
-        Initialize UI with two entry fields and a connection button."""
+        Initialize UI with server list and a connection button."""
 
         self.parent.title('Sudoku server selection')
         self.pack(fill=BOTH, expand=1)
@@ -68,8 +148,9 @@ class ConnectionUI(Frame):
     def __connect_server(self):
         """
         Input name has no space and less or equal to 8 characters.
-        Input port consists of an integer between 1001 and 65535.
+        A server must be selected for anything to happen.
         """
+
         name_ok = False
         server_ok = False
         LOG.debug('Server connect button has been pressed.')
@@ -234,12 +315,34 @@ class LobbyUI(Frame):
                     self.lobby_list.focus(item)
 
 
+def initiate_mc_window(root):
+    """
+    Create MC input UI and attach it to root.
+
+    :param root:
+    :return mc window:
+    """
+    mc_window = FuckingMCServerPrompt(root)
+    root.geometry('%dx%d' % (360, 100))
+
+    return mc_window
+
+
+def destroy_mc_window(mc_window):
+    """
+    Close MC input UI portion of root.
+    :param mc_window:
+    """
+    LOG.debug('MC input is destroyed.')
+    mc_window.destroy()
+
+
 def initiate_input(root):
     """
     Create input UI and attach it to root.
 
     :param root:
-    :return client window:
+    :return input window:
     """
     input_window = ConnectionUI(root)
     root.geometry('%dx%d' % (INPUT_WIDTH, INPUT_HEIGHT))
