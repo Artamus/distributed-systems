@@ -37,8 +37,8 @@ class FuckingMCServerPrompt(Frame):
         """
         Initialize UI with two entry fields and a connection button."""
 
-        #self.parent.title('MC server selection')
-        self.parent.title('beats me')
+        # self.parent.title('MC server selection')
+        self.parent.title('MC selection')
         self.pack(fill=BOTH, expand=1)
 
         Label(self, text='Please insert the host and port where to listen for game servers').grid(row=0,
@@ -58,7 +58,7 @@ class FuckingMCServerPrompt(Frame):
         self.mc_host_entry.insert('end', '239.1.1.1')
         self.mc_port_entry.insert('end', '7778')
 
-        self.connect_lobby = Button(self, text='Select MC server', command=self.__connect_server)
+        self.connect_lobby = Button(self, text='Select MC URI', command=self.__connect_server)
         self.connect_lobby.grid(row=3, column=1, pady=(0, 10))
 
     def __connect_server(self):
@@ -96,7 +96,6 @@ class FuckingMCServerPrompt(Frame):
         if host_ok and port_ok:
             self.mc_host = host
             self.mc_port = port
-
 
 
 class ConnectionUI(Frame):
