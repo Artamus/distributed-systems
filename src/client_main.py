@@ -1,14 +1,16 @@
-from Tkinter import Tk
-import tkMessageBox
-from client_input import initiate_input, initiate_lobby, update_input, update_lobby, destroy_input_window, \
-    destroy_lobby_window, initiate_mc_window, destroy_mc_window
-import time
-import threading
 import logging
-import SudokuGameGUI
+import threading
+import time
+import tkMessageBox
+from Tkinter import Tk
 from socket import socket, AF_INET, SOCK_DGRAM, inet_aton, IPPROTO_IP, IP_ADD_MEMBERSHIP, SOL_SOCKET, SO_REUSEADDR, \
     SHUT_RDWR, timeout
+
 import Pyro4
+
+import SudokuGameGUI
+from client_input import initiate_input, initiate_lobby, update_input, update_lobby, destroy_input_window, \
+    destroy_lobby_window, initiate_mc_window, destroy_mc_window
 
 # Setup logging
 FORMAT = '%(asctime)-15s %(levelname)s %(message)s'

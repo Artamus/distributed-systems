@@ -180,7 +180,7 @@ class ConnectionUI(Frame):
             if selected_server is not None:
                 server_ok = True
         else:
-            tkMessageBox.showwarning("Connection error", "Please fuck off and select a server to join.")
+            tkMessageBox.showwarning("Connection error", "Please select a server to join.")
 
         if name_ok and server_ok:
             self.nickname = nickname
