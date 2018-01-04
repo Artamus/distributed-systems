@@ -4,7 +4,7 @@ import time
 import tkMessageBox
 from Tkinter import Tk
 from socket import socket, AF_INET, SOCK_DGRAM, inet_aton, IPPROTO_IP, IP_ADD_MEMBERSHIP, SOL_SOCKET, SO_REUSEADDR, \
-    SHUT_RDWR, timeout
+    SHUT_RDWR, timeout, SHUT_WR
 
 import Pyro4
 
@@ -324,17 +324,22 @@ class MulticastDiscoveryThread(threading.Thread):
         threading.Thread.__init__(self)
 
         self.sock = socket(AF_INET, SOCK_DGRAM)
-        membership = inet_aton(mc_host) + inet_aton("0.0.0.0")
 
-        self.sock.setsockopt(IPPROTO_IP, IP_ADD_MEMBERSHIP, membership)
-        self.sock.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
+        try:
+            membership = inet_aton(mc_host) + inet_aton("0.0.0.0")
 
-        self.sock.bind(("0.0.0.0", mc_port))
+            self.sock.setsockopt(IPPROTO_IP, IP_ADD_MEMBERSHIP, membership)
+            self.sock.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
 
-        self.sock.settimeout(1)
+            self.sock.bind(("0.0.0.0", mc_port))
 
-        LOG.debug("Socket bound")
-        self.servers = servers
+            self.sock.settimeout(1)
+
+            LOG.debug("Socket bound")
+            self.servers = servers
+        except:
+            self.sock.close()
+            exit()
 
     def run(self):
         while not self._stopevent.isSet():
@@ -356,7 +361,7 @@ class MulticastDiscoveryThread(threading.Thread):
                 if addr not in self.servers:
                     self.servers[addr] = (nr_of_players, name)
 
-        self.sock.shutdown(SHUT_RDWR)
+        #self.sock.shutdown(SHUT_WR)
         self.sock.close()
 
     def join(self, timeout=None):
